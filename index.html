@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+<title>حاسبة رواتب الأوقاف</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* تخطيط: تبويبان، شبكة اختيارات، جدول تفصيلي ثم الصافي */
+:root{--bg:#f6f7f5;--surface:#fff;--fg:#1b2420;--muted:#5d6a63;--line:#dde3df;--accent:#0f6b4f;--accent-fg:#fff;--accent-soft:#e3f1ec;--warn-bg:#fff5df;--warn-fg:#6b4a00;--font:'IBM Plex Sans Arabic','Segoe UI',Tahoma,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a16;--surface:#1a2420;--fg:#e8eeea;--muted:#9bab9f;--line:#2c3a34;--accent:#5fcfa4;--accent-fg:#0d1a14;--accent-soft:#1d3a2f;--warn-bg:#3a2e0e;--warn-fg:#f0d489;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121a16;--surface:#1a2420;--fg:#e8eeea;--muted:#9bab9f;--line:#2c3a34;--accent:#5fcfa4;--accent-fg:#0d1a14;--accent-soft:#1d3a2f;--warn-bg:#3a2e0e;--warn-fg:#f0d489;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.7;padding-inline:16px;padding-block:20px 40px}
+main{max-width:860px;margin-inline:auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.5rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:2px 0 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{font:inherit;font-weight:600;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+h2.grp{grid-column:1/-1;margin:6px 0 -4px;font-size:.8rem;font-weight:700;color:var(--accent);letter-spacing:.03em;padding-top:8px;border-top:1px solid var(--line)}
+h2.grp:first-child{border-top:0;padding-top:0;margin-top:0}
+label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.85rem;color:var(--muted);min-width:0}
+label.chk{flex-direction:row;align-items:center;gap:8px;align-self:end;padding-block:9px}
+select,input[type=number]{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+input[type=number]{width:100%;min-width:0;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+select:focus-visible,input[type=number]:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:380px}
+th,td{padding:9px 12px;text-align:start;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font-size:.8rem;color:var(--muted);font-weight:600}
+td.n,th.n{text-align:end;white-space:nowrap}
+td small{color:var(--muted);display:block;font-size:.76rem;line-height:1.4}
+tr.sec td{background:var(--accent-soft);font-weight:700;color:var(--accent)}
+tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+tr.net td{font-weight:700;font-size:1.15rem;background:var(--accent-soft);color:var(--accent);border-bottom:0}
+.note{background:var(--warn-bg);color:var(--warn-fg);border-radius:10px;padding:12px 14px;font-size:.88rem}
+.note ul{margin:6px 0 0;padding-inline-start:20px}
+.src{color:var(--muted);font-size:.8rem}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>حاسبة رواتب الأوقاف</h1>
+<p class="sub">تفصيل الراتب والاستقطاعات والصافي حسب التخصص والمسمى والدرجة. المبالغ بالدينار الكويتي شهرياً.</p>
+</header>
+<div class="tabs" role="tablist">
+<button role="tab" id="tab1" aria-selected="true">حسب التخصص والدرجة</button>
+<button role="tab" id="tab2" aria-selected="false">مسميات أخرى</button>
+</div>
+<section class="controls" aria-label="الاختيارات">
+<h2 class="grp" id="gJob">الوظيفة</h2>
+<label id="lTrack">التخصص<select id="track"></select></label>
+<label>المسمى الوظيفي<select id="title"></select></label>
+<label id="lGrade">الدرجة<select id="grade"></select></label>
+<h2 class="grp">الحالة</h2>
+<label>الحالة الاجتماعية<select id="ms"><option value="s">أعزب</option><option value="m">متزوج</option></select></label>
+<label>عدد الأولاد (50 لكل ولد)<select id="kids"></select></label>
+<label>عدد العلاوات الدورية<select id="n"></select></label>
+<h2 class="grp" id="gItems">بنود تعدّلها عند الحاجة</h2>
+<label id="lInc">المكافأة التشجيعية<input type="number" id="incIn" min="0" step="5" value="0"></label>
+<label id="lOth">بدل آخر (طبيعة عمل أو غيره)<input type="number" id="othIn" min="0" step="5" value="0"></label>
+<label class="chk"><input type="checkbox" id="ic" checked>الزيادة الشهرية 50</label>
+</section>
+<div class="tablewrap"><table id="t"></table></div>
+<div class="note" id="notes"></div>
+<p class="src">المصدر: قرارات مجلس الخدمة المدنية 2012 (جدول الدرجات، الوظائف المالية، الإمامة)، وكشوف الرواتب حسب المسمى. معادلات الاستقطاع من قسم الرواتب وطابقت الصافي في الكشوف الـ33.</p>
+</main>
+<script>
+const G={"أ": {"n": "أ", "base": 520, "step": 12, "s": 268, "sm": 368, "sp": 130}, "ب": {"n": "ب", "base": 460, "step": 12, "s": 253, "sm": 353, "sp": 115}, "1": {"n": "الأولى", "base": 410, "step": 10, "s": 235, "sm": 328, "sp": 103}, "2": {"n": "الثانية", "base": 360, "step": 10, "s": 222, "sm": 315, "sp": 90}, "3": {"n": "الثالثة", "base": 310, "step": 10, "s": 203, "sm": 291, "sp": 78}, "4": {"n": "الرابعة", "base": 260, "step": 10, "s": 190, "sm": 278, "sp": 65}, "5": {"n": "الخامسة", "base": 200, "step": 8, "s": 169, "sm": 250, "sp": 50}, "6": {"n": "السادسة", "base": 165, "step": 7, "s": 161, "sm": 242, "sp": 50}, "7": {"n": "السابعة", "base": 135, "step": 6, "s": 147, "sm": 222, "sp": 50}, "8": {"n": "الثامنة", "base": 110, "step": 5, "s": 141, "sm": 216, "sp": 50}, "3m": {"n": "الثالثة (معاونة)", "base": 90, "step": 3, "s": 136, "sm": 211, "sp": 50}}, TR=[{"name": "المحاسبة", "titles": [["كبير اختصاصيي محاسبة", 440], ["اختصاصي أول محاسبة", 380], ["اختصاصي محاسبة", 320], ["محاسب أول", 260], ["محاسب", 200], ["محاسب مبتدئ", 140]], "inc": {"أ": 350, "ب": 290, "1": 230, "2": 170, "3": 110, "4": 80}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": null, "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "مالية وقانونية"}, {"name": "التدقيق المالي", "titles": [["كبير مدققي حسابات", 440], ["اختصاصي أول تدقيق", 380], ["اختصاصي تدقيق", 320], ["مدقق حسابات", 260], ["محاسب", 200], ["محاسب مبتدئ", 140]], "inc": {"أ": 350, "ب": 290, "1": 230, "2": 170, "3": 110, "4": 80}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": null, "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "مالية وقانونية"}, {"name": "التحليل المالي", "titles": [["كبير المحللين الماليين", 440], ["اختصاصي أول تحليل مالي", 380], ["اختصاصي تحليل مالي", 320], ["محلل أول مالي", 260], ["محلل مالي", 200], ["محلل مبتدئ مالي", 140]], "inc": {"أ": 350, "ب": 290, "1": 230, "2": 170, "3": 110, "4": 80}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": null, "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "مالية وقانونية"}, {"name": "القانوني", "titles": [["كبير اختصاصيي قانون", 440], ["اختصاصي أول قانون", 380], ["اختصاصي قانون", 320], ["باحث أول قانوني", 260], ["باحث قانوني", 200], ["باحث مبتدئ قانوني", 140]], "inc": {"أ": 350, "ب": 290, "1": 230, "2": 170, "3": 110, "4": 80}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": "مكافأة المستوى للقانوني من قرار 20.", "incWarn": "تشجيعية القانوني فوق الرابعة غير مؤكدة، مأخوذة من جدول المحاسبين. الرابعة مؤكدة بكشف باحث مبتدئ قانوني.", "unsure": ["أ", "ب", "1", "2", "3"], "oth": null, "othLabel": null, "nosp": false, "grp": "مالية وقانونية"}, {"name": "المالية العامة", "titles": [["كبير الاختصاصيين الماليين", 540], ["اختصاصي أول مالي", 470], ["اختصاصي مالي", 400], ["باحث أول مالي", 330], ["باحث مالي", 260], ["باحث مبتدئ مالي", 190]], "inc": {}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": "مكافأة المستوى من قرار 23، وأسماء بعض المستويات غير مؤكدة (رئيس حسابات ومراقب مالي لهما نفس المستوى).", "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "مالية وقانونية"}, {"name": "المالي المساند", "titles": [["مشرف كتبة حسابات", 100], ["مساعد مشرف كتبة حسابات", 80], ["كاتب أول حسابات", 60], ["كاتب حسابات", 50]], "inc": {"5": 70}, "grades": ["4", "5", "6", "7", "8"], "ic": true, "warn": "مكافأة المستوى من قرار 19.", "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "مالية وقانونية"}, {"name": "القانوني المساند", "titles": [["مشرف كتبة قانون", 100], ["مساعد مشرف كتبة قانون", 80], ["كاتب أول قانوني", 60], ["كاتب قانوني", 50]], "inc": {"5": 70}, "grades": ["4", "5", "6", "7", "8"], "ic": true, "warn": "مكافأة المستوى من قرار 19.", "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "مالية وقانونية"}, {"name": "الدراسات الإسلامية", "titles": [["كبير اختصاصيي دراسات إسلامية", 440], ["اختصاصي أول دراسات إسلامية", 380], ["اختصاصي دراسات إسلامية", 320], ["باحث أول دراسات إسلامية", 260], ["باحث دراسات إسلامية", 200], ["باحث مبتدئ دراسات إسلامية", 140]], "inc": {"أ": 350, "ب": 290, "1": 230, "2": 170, "3": 110, "4": 80}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": "أسماء المسميات هنا مبنية على صيغة الجدول، وتحتاج مراجعة على قرار 36.", "incWarn": "تشجيعية الدراسات الإسلامية فوق الرابعة غير مؤكدة (جدول قرار 36 يتعارض مع الكشف)، مأخوذة من جدول المحاسبين. الرابعة مؤكدة بكشف باحث مبتدئ.", "unsure": ["أ", "ب", "1", "2", "3"], "oth": null, "othLabel": null, "nosp": false, "grp": "شؤون إسلامية"}, {"name": "الإمامة والخطابة", "titles": [["موجه أول إمامة وخطابة", 440], ["موجه إمامة وخطابة", 380], ["إمام وخطيب أول", 320], ["إمام وخطيب", 260], ["إمام", 210], ["إمام مبتدئ", 200]], "inc": {"أ": 350, "ب": 290, "1": 230, "2": 170, "3": 110, "4": 100}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": false, "warn": "عنوان جدول الإمامة في الصفحة 171 غير واضح، فراجع المسميات.", "incWarn": "الزيادة الشهرية مغلقة افتراضياً لأن كشف إمام مبتدئ ما فيه زيادة، ويمكنك تفعيلها.", "unsure": ["أ", "ب", "1", "2", "3"], "oth": null, "othLabel": null, "nosp": false, "grp": "شؤون إسلامية"}, {"name": "الإحصاء", "titles": [["كبير المحللين الإحصائيين", 430], ["اختصاصي أول إحصاء", 370], ["اختصاصي إحصاء", 310], ["محلل أول إحصاء", 250], ["محلل إحصاء", 190], ["محلل مبتدئ إحصاء", 130]], "inc": {"4": 70}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": "مكافأة المستوى من قرار 24. الأسماء قد تختلف عن القرار (إحصائي أو محلل).", "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "إحصاء واقتصاد وإدارة"}, {"name": "الاقتصاد", "titles": [["كبير المحللين الاقتصاديين", 150], ["اختصاصي أول اقتصاد", 140], ["اختصاصي اقتصاد", 130], ["محلل أول اقتصاد", 120], ["محلل اقتصاد", 110], ["محلل مبتدئ اقتصاد", 100]], "inc": {}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": "مكافأة المستوى من قرار 25، وأسماء المسميات تقديرية وتحتاج مراجعة.", "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "إحصاء واقتصاد وإدارة"}, {"name": "التطوير الإداري", "titles": [["كبير اختصاصي تطوير إداري", 150], ["اختصاصي أول تطوير إداري", 140], ["اختصاصي تطوير إداري", 130], ["باحث أول تطوير إداري", 120], ["باحث تطوير إداري", 110], ["باحث مبتدئ تطوير إداري", 100]], "inc": {"4": 40}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": true, "warn": "مكافأة المستوى من قرار 26.", "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "إحصاء واقتصاد وإدارة"}, {"name": "تسجيل البيانات (تقنية المعلومات)", "titles": [["مشرف تسجيل بيانات", 90], ["مساعد مشرف تسجيل بيانات", 80], ["مسجل أول بيانات", 70], ["مسجل بيانات", 60]], "inc": {}, "grades": ["4", "5", "6", "7", "8"], "ic": true, "warn": "مكافأة المستوى من قرار 22 (مسارات الدعم فقط). بدل الطبيعة 40 مؤكد للدرجة الثامنة فقط.", "incWarn": null, "unsure": null, "oth": {"8": 40}, "othLabel": "بدل طبيعة", "nosp": false, "grp": "تقنية وفنية وهندسة"}, {"name": "حفظ الوثائق (تقنية المعلومات)", "titles": [["مشرف أجهزة", 90], ["مساعد مشرف أجهزة", 80], ["مشغل أول", 70], ["مشغل", 60]], "inc": {}, "grades": ["4", "5", "6", "7", "8"], "ic": true, "warn": "مكافأة المستوى من قرار 22 (مسارات الدعم فقط).", "incWarn": null, "unsure": null, "oth": null, "othLabel": "بدل طبيعة", "nosp": false, "grp": "تقنية وفنية وهندسة"}, {"name": "التفتيش", "titles": [["مشرف تفتيش", 110], ["مساعد مشرف تفتيش", 90], ["مفتش أول", 70], ["مفتش", 60], ["مساعد مفتش", 50]], "inc": {}, "grades": ["4", "5", "6", "7", "8"], "ic": true, "warn": "مكافأة المستوى من قرار 37.", "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "تقنية وفنية وهندسة"}, {"name": "المعادن الثمينة", "titles": [["مشرف معادن ثمينة", 130], ["مساعد مشرف", 100], ["فني أول", 80], ["فني", 60], ["مساعد فني", 40]], "inc": {}, "grades": ["4", "5", "6", "7", "8"], "ic": true, "warn": "مكافأة المستوى من قرار 38.", "incWarn": null, "unsure": null, "oth": null, "othLabel": null, "nosp": false, "grp": "تقنية وفنية وهندسة"}, {"name": "الهندسة المساندة (قرار 40)", "titles": [["مشرف أول", 300], ["مشرف ثان", 250], ["مشرف ثالث", 200], ["مساعد مشرف", 160], ["مساعد أول مهندس / فني أول", 130], ["مساعد مهندس / فني ثان", 100], ["فني ثالث", 80], ["مساعد أول فني", 60], ["مساعد ثان فني", 40]], "inc": {"أ": 120, "ب": 110, "1": 95, "2": 85, "3": 80, "4": 75, "5": 75, "6": 45, "7": 40, "8": 35}, "grades": ["4", "5", "6", "7", "8"], "ic": false, "warn": "المستوى من قرار 40، والتشجيعية وبدل الطبيعة من قرار 13/2011. الدرجات من الخامسة إلى الثامنة مطابقة لكشوف الرواتب. الزيادة الشهرية مغلقة افتراضياً مثل كشوف الفنيين. بدل الموقع غير محسوب.", "incWarn": null, "unsure": ["4"], "oth": {"أ": 395, "ب": 360, "1": 330, "2": 245, "3": 160, "4": 100, "5": 55, "6": 40, "7": 30, "8": 25}, "othLabel": "بدل طبيعة", "nosp": false, "grp": "تقنية وفنية وهندسة"}, {"name": "المهندسون (مصدر ثانوي)", "titles": [["كبير المهندسين الاختصاصيين", 600], ["مهندس اختصاصي أول", 515], ["مهندس اختصاصي", 440], ["مهندس أول", 370], ["مهندس", 305], ["مهندس مبتدئ", 195]], "inc": {"أ": 270, "ب": 240, "1": 210, "2": 180, "3": 150, "4": 120}, "grades": ["أ", "ب", "1", "2", "3", "4"], "ic": false, "warn": "أرقام المهندسين من إنفوغرافيك وليست من القرار الرسمي، والمؤكد بكشف الراتب مهندس مبتدئ على الرابعة فقط. لا خاصة للمهندسين، وبدل الموقع غير محسوب.", "incWarn": "أرقام المهندسين غير مؤكدة رسمياً وتحتاج مراجعة على قرار 8/2010.", "unsure": ["أ", "ب", "1", "2", "3"], "oth": {"أ": 790, "ب": 745, "1": 660, "2": 495, "3": 320, "4": 205}, "othLabel": "بدل طبيعة العمل", "nosp": true, "grp": "تقنية وفنية وهندسة"}], OT=[{"nosp": false, "name": "مرشد ديني مبتدئ", "grp": "دعوي ومساجد", "flat": false, "lvl": 140, "othLabel": "", "seen": {"4": {"inc": 80, "oth": 0, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "ملاحظ مسجد", "grp": "دعوي ومساجد", "flat": true, "lvl": 0, "othLabel": "مكافأة مالية + بدل انتقال", "seen": {"4": {"inc": 0, "oth": 190, "ic": 1}, "5": {"inc": 0, "oth": 190, "ic": 1}, "6": {"inc": 0, "oth": 190, "ic": 1}, "7": {"inc": 0, "oth": 190, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "محفظ قرآن", "grp": "دعوي ومساجد", "flat": true, "lvl": 0, "othLabel": "", "seen": {"5": {"inc": 150, "oth": 0, "ic": 1}, "6": {"inc": 150, "oth": 0, "ic": 1}, "7": {"inc": 150, "oth": 0, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "5"}, {"nosp": false, "name": "مؤذن", "grp": "دعوي ومساجد", "flat": true, "lvl": 0, "othLabel": "", "seen": {"7": {"inc": 150, "oth": 0, "ic": 0}}, "grades": ["4", "5", "6", "7", "8"], "def": "7"}, {"nosp": true, "name": "معلم (د)", "grp": "تعليم وبحوث", "flat": false, "lvl": 250, "othLabel": "بدل طبيعة تدريس", "seen": {"4": {"inc": 150, "oth": 75, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "محلل مبتدئ وثائق ومعلومات", "grp": "تعليم وبحوث", "flat": false, "lvl": 90, "othLabel": "بدل طبيعة", "seen": {"4": {"inc": 50, "oth": 80, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "أمين مكتبة مبتدئ", "grp": "تعليم وبحوث", "flat": false, "lvl": 50, "othLabel": "", "seen": {"4": {"inc": 100, "oth": 0, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "باحث مبتدئ إعلام", "grp": "تعليم وبحوث", "flat": false, "lvl": 50, "othLabel": "", "seen": {"4": {"inc": 100, "oth": 0, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "مصحح مبتدئ لغوي", "grp": "تعليم وبحوث", "flat": false, "lvl": 50, "othLabel": "", "seen": {"4": {"inc": 100, "oth": 0, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "مترجم مبتدئ", "grp": "تعليم وبحوث", "flat": false, "lvl": 50, "othLabel": "", "seen": {"4": {"inc": 100, "oth": 0, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "باحث مبتدئ اجتماعي", "grp": "تعليم وبحوث", "flat": false, "lvl": 40, "othLabel": "", "seen": {"4": {"inc": 60, "oth": 0, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "باحث مبتدئ نفسي", "grp": "تعليم وبحوث", "flat": false, "lvl": 40, "othLabel": "", "seen": {"4": {"inc": 60, "oth": 0, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "منسق إداري معاملات", "grp": "معاملات وإدارة", "flat": true, "lvl": 0, "othLabel": "مكافأة مالية", "seen": {"4": {"inc": 0, "oth": 100, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "مساعد منسق إداري", "grp": "معاملات وإدارة", "flat": true, "lvl": 0, "othLabel": "مكافأة مالية", "seen": {"5": {"inc": 0, "oth": 100, "ic": 1}, "6": {"inc": 0, "oth": 100, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "5"}, {"nosp": false, "name": "أمين مخزن", "grp": "معاملات وإدارة", "flat": true, "lvl": 0, "othLabel": "مكافأة مالية", "seen": {"5": {"inc": 0, "oth": 100, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "5"}, {"nosp": false, "name": "منفذ معاملات", "grp": "معاملات وإدارة", "flat": true, "lvl": 0, "othLabel": "مكافأة مالية", "seen": {"7": {"inc": 0, "oth": 100, "ic": 1}, "8": {"inc": 0, "oth": 100, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "7"}, {"nosp": false, "name": "معقب معاملات", "grp": "معاملات وإدارة", "flat": true, "lvl": 0, "othLabel": "مكافأة مالية", "seen": {"3m": {"inc": 0, "oth": 100, "ic": 1}}, "grades": ["4", "5", "6", "7", "8", "3m"], "def": "3m"}, {"nosp": false, "name": "مخابر اتصالات / هاتف", "grp": "معاملات وإدارة", "flat": true, "lvl": 0, "othLabel": "مكافأة مالية + بدل انتقال", "seen": {"5": {"inc": 0, "oth": 145, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "5"}, {"nosp": false, "name": "صائغ برامج", "grp": "تقنية", "flat": false, "lvl": 90, "othLabel": "بدل طبيعة", "seen": {"4": {"inc": 50, "oth": 80, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "4"}, {"nosp": false, "name": "مشغل حاسوب", "grp": "تقنية", "flat": false, "lvl": 90, "othLabel": "بدل طبيعة", "seen": {"5": {"inc": 0, "oth": 50, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "5"}, {"nosp": false, "name": "مساعد صائغ برامج", "grp": "تقنية", "flat": false, "lvl": 80, "othLabel": "بدل طبيعة", "seen": {"5": {"inc": 0, "oth": 50, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "5"}, {"nosp": false, "name": "مساعد مشغل حاسوب", "grp": "تقنية", "flat": false, "lvl": 80, "othLabel": "بدل طبيعة", "seen": {"5": {"inc": 0, "oth": 50, "ic": 1}}, "grades": ["4", "5", "6", "7", "8"], "def": "5"}];
+const $=id=>document.getElementById(id);
+const f=x=>x.toLocaleString('en-US',{minimumFractionDigits:3,maximumFractionDigits:3});
+let mode=1;
+function calc(p){
+  const base=p.base0+p.n*p.step, soc=p.ms==='m'?p.socm:p.soc, kids=p.kids*50;
+  const allw=p.inc+p.lvl+p.oth.reduce((a,o)=>a+o[1],0), ic=p.ic?50:0;
+  const rows=[[p.n?'الراتب الأساسي ('+p.n+' علاوة)':'الراتب الأساسي (أول المربوط)',base],['العلاوة الاجتماعية',soc],['علاوة الأولاد',kids],['العلاوة الخاصة',p.sp],['غلاء المعيشة',120],['الدعم المالي',50],['الزيادة الشهرية',ic],['المكافأة التشجيعية',p.inc],['مكافأة المستوى',p.lvl]];
+  p.oth.forEach(o=>rows.push([o[0],o[1]]));
+  const gross=rows.reduce((a,x)=>a+x[1],0), core=base+soc+kids;
+  const d=[['التأمين الأساسي 5%',.05*core,'الأساسي + الاجتماعية + الأولاد'],['التأمين التكميلي 5%',.05*(allw+ic),'البدلات + الزيادة الشهرية'],['حصة المؤمن 2.5%',.025*(core+allw+ic),'الأساسي + الاجتماعية + الأولاد + البدلات + الزيادة'],['صندوق المكافأة المالية 2.5%',.025*core,'الأساسي + الاجتماعية + الأولاد']];
+  const ded=d.reduce((a,x)=>a+x[1],0);
+  return {rows,gross,d,ded,net:gross-ded};
+}
+function fillSel(sel,items,val){sel.innerHTML=items.map(([v,t])=>'<option value="'+v+'">'+t+'</option>').join('');if(val!==undefined)sel.value=val}
+function fillTracks(){
+  const sel=$('track'),groups={};
+  TR.forEach((t,i)=>{(groups[t.grp]=groups[t.grp]||[]).push([i,t.name])});
+  sel.innerHTML='';
+  Object.keys(groups).forEach(g=>{const og=document.createElement('optgroup');og.label=g;groups[g].forEach(([i,n])=>{const o=document.createElement('option');o.value=i;o.textContent=n;og.appendChild(o)});sel.appendChild(og)});
+  sel.value=0;
+}
+function fillPayslipTitles(){
+  const sel=$('title'),groups={};
+  D.forEach((r,i)=>{(groups[r.gn]=groups[r.gn]||[]).push([i,r.name])});
+  sel.innerHTML='';
+  Object.keys(groups).forEach(g=>{
+    const og=document.createElement('optgroup');og.label='الدرجة '+g;
+    groups[g].sort((a,b)=>a[1].localeCompare(b[1],'ar')).forEach(([i,n])=>{const o=document.createElement('option');o.value=i;o.textContent=n;og.appendChild(o)});
+    sel.appendChild(og);
+  });
+  sel.value=D.findIndex(r=>r.name==='محاسب مبتدئ');
+}
+function fillN(max,def){fillSel($('n'),Array.from({length:max+1},(_,i)=>[i,i===0?'بدون (أول المربوط)':i]),def)}
+function setMode(m){
+  mode=m;$('tab1').setAttribute('aria-selected',m===1);$('tab2').setAttribute('aria-selected',m===2);
+  $('lTrack').hidden=m!==1;
+  $('gJob').textContent=m===1?'الوظيفة':'المسمى والدرجة';
+  if(m===1){fillTracks();fillTitles()}
+  else{fillOther();onOther()}
+  render();
+}
+function fillOther(){
+  const sel=$('title'),groups={};
+  OT.forEach((r,i)=>{(groups[r.grp]=groups[r.grp]||[]).push([i,r.name])});
+  sel.innerHTML='';
+  Object.keys(groups).forEach(g=>{const og=document.createElement('optgroup');og.label=g;groups[g].forEach(([i,n])=>{const o=document.createElement('option');o.value=i;o.textContent=n;og.appendChild(o)});sel.appendChild(og)});
+  sel.value=0;
+}
+function onOther(){
+  const r=OT[+$('title').value];
+  fillSel($('grade'),r.grades.map(g=>[g,G[g].n]),r.def);
+  fillN(r.def==='3m'?10:5,0);
+  prefillOther();
+}
+function otherSrc(r,gk){return r.flat?r.seen[r.def]:r.seen[gk]}
+function prefillOther(){
+  const r=OT[+$('title').value],gk=$('grade').value,s=otherSrc(r,gk);
+  $('incIn').value=s?s.inc:0;
+  $('othIn').value=s?s.oth:0;
+  $('ic').checked=s?s.ic:r.seen[r.def].ic;
+}
+function prefill(){
+  const t=TR[+$('track').value],gk=$('grade').value;
+  $('incIn').value=(t.inc&&t.inc[gk]!==undefined)?t.inc[gk]:0;
+  $('othIn').value=(t.oth&&t.oth[gk]!==undefined)?t.oth[gk]:0;
+}
+function fillTitles(){
+  const t=TR[+$('track').value];
+  fillSel($('title'),t.titles.map((x,i)=>[i,x[0]]),0);
+  fillSel($('grade'),t.grades.map(g=>[g,G[g].n]),t.grades[t.grades.length-1]);
+  $('ic').checked=t.ic;fillN(5,0);prefill();
+}
+function params(){
+  const ms=$('ms').value,kids=+$('kids').value,n=+$('n').value,ic=$('ic').checked;
+  if(mode===2){
+    const r=OT[+$('title').value],gk=$('grade').value,g=G[gk],s=otherSrc(r,gk),flags=[];
+    if(!s)flags.push('التشجيعية وبدل الطبيعة لهذه الدرجة غير معروفة (ظهر هذا المسمى في الكشوف على '+r.grades.filter(x=>r.seen[x]).map(x=>G[x].n).join(' و')+'). أدخلها يدوياً في الخانتين.');
+    else if(r.flat&&!r.seen[gk])flags.push('هذه الدرجة ما ظهرت لهذا المسمى في الكشوف، والمبلغ ثابت بالمسمى فانطبق عليها.');
+    const oth=+$('othIn').value||0,inc=+$('incIn').value||0;
+    if(r.nosp)flags.push('هذا المسمى بدون علاوة خاصة في كشف الراتب.');
+    return {p:{base0:g.base,step:g.step,soc:g.s,socm:g.sm,sp:r.nosp?0:g.sp,inc,lvl:r.lvl,oth:oth?[[r.othLabel||'بدل آخر',oth]]:[],ic,ms,kids,n},name:r.name,gn:g.n,flags};
+  }
+  const t=TR[+$('track').value],x=t.titles[+$('title').value],gk=$('grade').value,g=G[gk];
+  const flags=[];
+  if(t.warn)flags.push(t.warn);
+  const known=t.inc&&t.inc[gk]!==undefined;
+  if(!known)flags.push(t.incWarn||'التشجيعية غير معروفة لهذه الدرجة في ملفاتي. أدخلها يدوياً في خانة التشجيعية (الآن تُحسب بالقيمة المكتوبة).');
+  else if(t.incWarn&&t.unsure&&t.unsure.includes(gk))flags.push(t.incWarn);
+  if(t.oth&&t.oth[gk]===undefined&&t.othLabel)flags.push('بدل الطبيعة غير معروف لهذه الدرجة، أدخله يدوياً.');
+  const oth=+$('othIn').value||0, inc=+$('incIn').value||0;
+  return {p:{base0:g.base,step:g.step,soc:g.s,socm:g.sm,sp:t.nosp?0:g.sp,inc,lvl:x[1],oth:oth?[[t.othLabel||'بدل آخر',oth]]:[],ic,ms,kids,n},name:x[0],gn:g.n,flags};
+}
+function render(){
+  const {p,name,gn,flags}=params(),c=calc(p);
+  const row=(l,v,cls,sub)=>'<tr'+(cls?' class="'+cls+'"':'')+'><td>'+l+(sub?'<small>'+sub+'</small>':'')+'</td><td class="n">'+f(v)+'</td></tr>';
+  let h='<thead><tr><th>'+name+'</th><th class="n">الدرجة '+gn+'</th></tr></thead><tbody><tr class="sec"><td colspan="2">الاستحقاقات</td></tr>';
+  c.rows.forEach(r=>{if(r[1]!==0)h+=row(r[0],r[1])});
+  h+=row('الإجمالي',c.gross,'tot')+'<tr class="sec"><td colspan="2">الاستقطاعات</td></tr>';
+  c.d.forEach(x=>{h+=row(x[0],x[1],'',x[2])});
+  h+=row('إجمالي الاستقطاع',c.ded,'tot')+row('الصافي',c.net,'net')+'</tbody>';
+  $('t').innerHTML=h;
+  const nt=['<strong>تنبيهات</strong><ul>'];
+  flags.forEach(w=>nt.push('<li>'+w+'</li>'));
+  nt.push('<li>بدل التمثيل (15% للأولى وب وأ) والإشراف والموقع والخفارة غير محسوبة.</li>');
+  nt.push('<li>الصافي للمتزوج أو مع الأولاد أو العلاوات الدورية محسوب بالمعادلات، ولم يُطابق بكشف فعلي إلا في حالة واحدة (فني ثان، 3 علاوات).</li>');
+  nt.push('</ul>');$('notes').innerHTML=nt.join('');
+}
+fillSel($('kids'),Array.from({length:8},(_,i)=>[i,i]),0);
+$('tab1').onclick=()=>setMode(1);$('tab2').onclick=()=>setMode(2);
+$('track').onchange=()=>{fillTitles();render()};
+$('title').onchange=()=>{if(mode===2)onOther();render()};
+$('grade').addEventListener('change',()=>{if(mode===1)prefill();else prefillOther();render()});
+['incIn','othIn'].forEach(i=>$(i).addEventListener('input',render));
+['n','ms','kids','ic'].forEach(i=>$(i).addEventListener('change',render));
+setMode(1);
+</script>
+
+</body>
+</html>
